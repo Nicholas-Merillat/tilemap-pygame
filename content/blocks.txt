@@ -1,0 +1,4 @@
+air
+grass
+dirt
+stone
