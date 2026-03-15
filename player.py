@@ -1,7 +1,5 @@
 import pygame
 
-import tilemap
-
 class Player():
     def __init__(self, x, y, width, height, tilemap):
         self.x = x
