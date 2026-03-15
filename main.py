@@ -11,7 +11,7 @@ WINDOW_SCALE_FACTOR = (WINDOW_RESOLUTION[0] / VIEWPORT_RESOLUTION[0], WINDOW_RES
 
 FPS_CAP = 60
 TILE_SIZE = 8
-TILEMAP_SIZE = (8400, 2400) # size of a terraria large world in tiles, 8400x2400
+TILEMAP_SIZE = (8400, 2400)
 
 pygame.init()
 pygame.display.set_caption(F'Tile Map {TILEMAP_SIZE[0]}x{TILEMAP_SIZE[1]}')
