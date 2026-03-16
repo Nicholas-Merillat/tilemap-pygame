@@ -16,11 +16,11 @@ class TileMap():
         self.grid = full((self.tilemap_size[0], self.tilemap_size[1]), 0)
         for x in range(self.tilemap_size[0]):
             for y in range(self.tilemap_size[1]):
-                if y == 20:
+                if y == 40:
                     self.grid[x][y] = 1
-                elif y > 20 and y <= 41:
+                elif y > 40 and y <= 51:
                     self.grid[x][y] = 2
-                elif y > 41:
+                elif y > 51:
                     self.grid[x][y] = 3
 
         with open('content/blocks.txt', 'r') as file:

@@ -23,7 +23,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont('Arial', 64)
 
 tilemap = TileMap(TILE_SIZE, TILEMAP_SIZE, VIEWPORT_RESOLUTION)
-camera = Camera(0, 0, 0, 0, TILEMAP_SIZE[0] * TILE_SIZE, TILEMAP_SIZE[1] * TILE_SIZE, VIEWPORT_RESOLUTION)
+camera = Camera(0, 0, False, 0, 0, TILEMAP_SIZE[0] * TILE_SIZE, TILEMAP_SIZE[1] * TILE_SIZE, VIEWPORT_RESOLUTION)
 player = Player(100, 100, 8, 16, tilemap)
 
 def draw():
@@ -41,8 +41,8 @@ def draw():
                     block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
                 viewport.blit(block_image, pygame.Rect(x * TILE_SIZE - camera.x, y * TILE_SIZE - camera.y, TILE_SIZE, TILE_SIZE))
 
-    pygame.draw.rect(viewport, (255,0,0), tilemap.cursor)
-    pygame.draw.rect(viewport, (0,0,255), player.rect)
+    pygame.draw.rect(viewport, (0,0,0), tilemap.cursor)
+    pygame.draw.rect(viewport, (0,0,0), player.rect)
 
     scaled_viewport = pygame.transform.scale(viewport, screen.get_size())
 
