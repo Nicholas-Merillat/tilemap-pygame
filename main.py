@@ -23,15 +23,12 @@ class Main():
         self.viewport.fill((95,125,245))
         fps_text = self.font.render(f'{int(self.clock.get_fps())}', True, (255, 255, 0))
 
-        last_tile_id = 0
         for x in self.tilemap.visible_x:
             for y in self.tilemap.visible_y:
                 tile_id = self.tilemap.grid[x][y]
                 if tile_id >= 1:
-                    if last_tile_id != tile_id:
-                        last_tile_id = tile_id
-                        block_image = self.tilemap.block_images[tile_id - 1]
-                        block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
+                    block_image = self.tilemap.block_images[tile_id - 1]
+                    block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
                     self.viewport.blit(block_image, pygame.Rect(x * TILE_SIZE - self.camera.x, y * TILE_SIZE - self.camera.y, TILE_SIZE, TILE_SIZE))
 
         pygame.draw.rect(self.viewport, (0,0,0), self.tilemap.cursor)
