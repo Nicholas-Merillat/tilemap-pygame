@@ -52,6 +52,7 @@ class TileMap():
     def update(self, camera):
         self.camera = camera
 
+        # range used to see which tiles to render on screen based on what camera can see
         camera_to_tile = self.screen_to_tile(self.camera.x % self.tile_size, self.camera.y % self.tile_size)
         self.visible_x = range(max(0, int(camera_to_tile.x) - 1), min(int(camera_to_tile.x + self.visible_tiles_x) + 1, self.tilemap_size[0]))
         self.visible_y = range(max(0, int(camera_to_tile.y) - 1), min(int(camera_to_tile.y + self.visible_tiles_y) + 1, self.tilemap_size[1]))

@@ -40,6 +40,7 @@ class Player():
         self.dx = self.x + self.width
         self.dy = self.y + self.height
 
+        # collision is based off tiles surrounding the player
         self.is_on_ground = False
         self.below_tile = self.tilemap.world_to_tile(self.x + self.width / 2, self.dy)
         self.above_tile = self.tilemap.world_to_tile(self.x + self.width / 2, self.y)
@@ -61,6 +62,7 @@ class Player():
             self.x = (self.left_tile.x + 1) * self.tilemap.tile_size
             self.velocity.x = 0
 
+        # borders of world
         if self.x < 0:
             self.x = 0
             self.velocity.x = 0
@@ -73,6 +75,7 @@ class Player():
         elif self.dy > self.limit_bottom:
             self.y = self.limit_bottom - self.height
             self.velocity.y = 0
+            self.is_on_ground = True
 
         if self.want_to_jump and self.is_on_ground:
             self.want_to_jump = False
