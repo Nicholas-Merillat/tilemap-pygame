@@ -11,16 +11,16 @@ class Player():
         self.height = height
         self.tilemap = tilemap
 
+        self.velocity = pygame.math.Vector2(0, 0)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.limit_right = TILE_SIZE * TILEMAP_SIZE[0]
+        self.limit_bottom = TILE_SIZE * TILEMAP_SIZE[1]
+
         self.acceleration = 0.1
         self.max_speed = 1.5
         self.gravity = 0.2
         self.fall_speed_cap = 5
         self.jump_force = -3.5
-
-        self.velocity = pygame.math.Vector2(0, 0)
-        self.limit_right = TILE_SIZE * TILEMAP_SIZE[0]
-        self.limit_bottom = TILE_SIZE * TILEMAP_SIZE[1]
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def update(self, delta, keys):
         for event in pygame.event.get():
