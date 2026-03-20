@@ -1,17 +1,8 @@
 import pygame, math, sys
-
+from settings import *
 from tilemap import TileMap
 from player import Player
 from camera import Camera
-
-FPS_CAP = 0 # If 0, framerate is uncapped
-PHYSICS_FPS = 60
-VIEWPORT_RESOLUTION = (640, 360)
-SCREEN_RESOLUTION = (1280, 720)
-SCREEN_SCALE_FACTOR = (SCREEN_RESOLUTION[0] / VIEWPORT_RESOLUTION[0], SCREEN_RESOLUTION[1] / VIEWPORT_RESOLUTION[1])
-
-TILE_SIZE = 8
-TILEMAP_SIZE = (4200, 1200)
 
 class Main():
     def __init__(self):
@@ -24,8 +15,8 @@ class Main():
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont('Arial', 64)
 
-        self.camera = Camera(0, 0, True, 0, 0, TILEMAP_SIZE[0] * TILE_SIZE, TILEMAP_SIZE[1] * TILE_SIZE, VIEWPORT_RESOLUTION)
-        self.tilemap = TileMap(TILE_SIZE, TILEMAP_SIZE, VIEWPORT_RESOLUTION)
+        self.tilemap = TileMap()
+        self.camera = Camera(0, 0, True)
         self.player = Player(100, 305, 7, 15, self.tilemap)
 
     def render(self):

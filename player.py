@@ -1,4 +1,5 @@
 import pygame
+from settings import *
 
 class Player():
     def __init__(self, x, y, width, height, tilemap):
@@ -17,8 +18,8 @@ class Player():
         self.jump_force = -3.5
 
         self.velocity = pygame.math.Vector2(0, 0)
-        self.limit_right = self.tilemap.tile_size * self.tilemap.tilemap_size[0]
-        self.limit_bottom = self.tilemap.tile_size * self.tilemap.tilemap_size[1]
+        self.limit_right = TILE_SIZE * TILEMAP_SIZE[0]
+        self.limit_bottom = TILE_SIZE * TILEMAP_SIZE[1]
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def update(self, delta, keys):
@@ -48,18 +49,18 @@ class Player():
         self.left_tile = self.tilemap.world_to_tile(self.x, self.y + self.height / 2)
 
         if self.tilemap.grid[int(self.below_tile.x)][int(self.below_tile.y)] != 0 and self.velocity.y >= 0:
-            self.y = self.below_tile.y * self.tilemap.tile_size - self.height
+            self.y = self.below_tile.y * TILE_SIZE - self.height
             self.velocity.y = 0
             self.is_on_ground = True
         elif self.tilemap.grid[int(self.above_tile.x)][int(self.above_tile.y)] != 0 and self.velocity.y <= 0:
-            self.y = (self.above_tile.y + 1) * self.tilemap.tile_size
+            self.y = (self.above_tile.y + 1) * TILE_SIZE
             self.velocity.y = 0
 
         if self.tilemap.grid[int(self.right_tile.x)][int(self.right_tile.y)] != 0 and self.velocity.x >= 0:
-            self.x = self.right_tile.x * self.tilemap.tile_size - self.width
+            self.x = self.right_tile.x * TILE_SIZE - self.width
             self.velocity.x = 0
         elif self.tilemap.grid[int(self.left_tile.x)][int(self.left_tile.y)] != 0 and self.velocity.x <= 0: 
-            self.x = (self.left_tile.x + 1) * self.tilemap.tile_size
+            self.x = (self.left_tile.x + 1) * TILE_SIZE
             self.velocity.x = 0
 
         # borders of world
