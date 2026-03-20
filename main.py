@@ -13,11 +13,11 @@ class Main():
         self.viewport = pygame.Surface(VIEWPORT_RESOLUTION)
         self.screen = pygame.display.set_mode(SCREEN_RESOLUTION)
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('Arial', 64)
+        self.font = pygame.font.SysFont('Monospace', int(24 * SCREEN_SCALE_FACTOR), True)
 
         self.tilemap = TileMap()
         self.camera = Camera(0, 0, True)
-        self.player = Player(100, 305, 7, 15, self.tilemap)
+        self.player = Player(100, 100, 7, 15, self.tilemap)
 
     def render(self):
         self.viewport.fill((95,125,245))
@@ -40,13 +40,13 @@ class Main():
         scaled_viewport = pygame.transform.scale(self.viewport, self.screen.get_size())
 
         self.screen.blit(scaled_viewport, (0,0))
-        self.screen.blit(fps_text, fps_text.get_rect(center=(65,40)))
+        self.screen.blit(fps_text, fps_text.get_rect(center=(25 * SCREEN_SCALE_FACTOR, 15 * SCREEN_SCALE_FACTOR)))
     
     def run(self):
         while True:
-            if FPS_CAP > 0: self.delta = (self.clock.tick(FPS_CAP) / 1000) * PHYSICS_FPS
+            if MAX_FPS > 0: self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
             else: self.delta = (self.clock.tick() / 1000) * PHYSICS_FPS
-            if self.delta > 1: self.delta = 1
+            if self.delta > PHYSICS_FPS / MIN_FPS: self.delta = PHYSICS_FPS / MIN_FPS
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -54,7 +54,7 @@ class Main():
                     sys.exit()
 
             self.mouse_position = pygame.math.Vector2(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
-            self.mouse_position_tile = pygame.math.Vector2(math.floor((self.mouse_position.x / SCREEN_SCALE_FACTOR[0] + self.camera.x) / TILE_SIZE), math.floor((self.mouse_position.y / SCREEN_SCALE_FACTOR[1] + self.camera.y) / TILE_SIZE))
+            self.mouse_position_tile = pygame.math.Vector2(math.floor((self.mouse_position.x / SCREEN_SCALE_FACTOR + self.camera.x) / TILE_SIZE), math.floor((self.mouse_position.y / SCREEN_SCALE_FACTOR + self.camera.y) / TILE_SIZE))
             self.mouse_pressed = pygame.mouse.get_pressed()
             self.mouse_in_window = self.mouse_position.x > 0 and self.mouse_position.x < SCREEN_RESOLUTION[0] and self.mouse_position.y > 0 and self.mouse_position.y < SCREEN_RESOLUTION[1]
             if self.mouse_in_window:
