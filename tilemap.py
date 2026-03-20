@@ -1,6 +1,4 @@
-import pygame
-import math
-from numpy import full
+import pygame, math, numpy
 
 class TileMap():
     def __init__(self, tile_size, tilemap_size, viewport):
@@ -13,7 +11,7 @@ class TileMap():
         self.cursor = pygame.Rect(0, 0, self.tile_size, self.tile_size)
         self.camera = pygame.math.Vector2(0, 0)
 
-        self.grid = full((self.tilemap_size[0], self.tilemap_size[1]), 0)
+        self.grid = numpy.full((self.tilemap_size[0], self.tilemap_size[1]), 0)
         for x in range(self.tilemap_size[0]):
             for y in range(self.tilemap_size[1]):
                 if y == 40:

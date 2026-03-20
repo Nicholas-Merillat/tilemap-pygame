@@ -1,4 +1,4 @@
-from pygame.math import lerp
+import pygame
 
 class Camera():
     def __init__(self, x, y, smooth_position, limit_left, limit_top, limit_right, limit_bottom, viewport):
@@ -14,10 +14,10 @@ class Camera():
         self.dx = x + self.viewport[0]
         self.dy = y + self.viewport[1]
 
-    def update(self, entity):
+    def update(self, delta, entity):
         if self.smooth_position:
-            self.x = lerp(self.x, (entity.x + entity.width / 2) - self.viewport[0] / 2, 0.1)
-            self.y = lerp(self.y, (entity.y + entity.height / 2) - self.viewport[1] / 2, 0.1)
+            self.x = pygame.math.lerp(self.x, (entity.x + entity.width / 2) - self.viewport[0] / 2, 0.1 * delta)
+            self.y = pygame.math.lerp(self.y, (entity.y + entity.height / 2) - self.viewport[1] / 2, 0.1 * delta)
         else:
             self.x = (entity.x + entity.width / 2) - self.viewport[0] / 2
             self.y = (entity.y + entity.height / 2) - self.viewport[1] / 2

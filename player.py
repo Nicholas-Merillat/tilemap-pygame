@@ -21,7 +21,7 @@ class Player():
         self.limit_bottom = self.tilemap.tile_size * self.tilemap.tilemap_size[1]
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-    def update(self, keys):
+    def update(self, delta, keys):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -30,13 +30,13 @@ class Player():
         self.direction = -int(keys[pygame.K_a]) + int(keys[pygame.K_d])
         self.want_to_jump = keys[pygame.K_w]
 
-        self.velocity.x = pygame.math.lerp(self.velocity.x, self.max_speed * self.direction, self.acceleration)
-        self.velocity.y += self.gravity
+        self.velocity.x = pygame.math.lerp(self.velocity.x, self.max_speed * self.direction, self.acceleration * delta)
+        self.velocity.y += self.gravity * delta
         if self.velocity.y > self.fall_speed_cap:
             self.velocity.y = self.fall_speed_cap
 
-        self.x += self.velocity.x
-        self.y += self.velocity.y
+        self.x += self.velocity.x * delta
+        self.y += self.velocity.y * delta
         self.dx = self.x + self.width
         self.dy = self.y + self.height
 
