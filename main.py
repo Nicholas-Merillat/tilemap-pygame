@@ -20,6 +20,8 @@ class Main():
         self.camera = Camera(0, 0, True)
         self.player = Player(100, 100, 7, 15, self.tilemap)
 
+        self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
+
     def render(self):
         # Draw any pixel art on viewport to keep pixels
         self.viewport.fill((95,125,245))
@@ -46,10 +48,7 @@ class Main():
     
     def run(self):
         while True:
-            if MAX_FPS > 0: self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
-            else: self.delta = (self.clock.tick() / 1000) * PHYSICS_FPS
-            if self.delta > PHYSICS_FPS / MIN_FPS: self.delta = PHYSICS_FPS / MIN_FPS
-
+            self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
