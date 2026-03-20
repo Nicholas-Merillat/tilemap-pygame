@@ -1,5 +1,6 @@
 import pygame, math, sys
 from settings import *
+
 from tilemap import TileMap
 from player import Player
 from camera import Camera
@@ -20,9 +21,10 @@ class Main():
         self.player = Player(100, 100, 7, 15, self.tilemap)
 
     def render(self):
+        # Draw any pixel art on viewport to keep pixels
         self.viewport.fill((95,125,245))
-        fps_text = self.font.render(f'{int(self.clock.get_fps())}', True, (255, 255, 0))
 
+        # Iterates through the visible tiles on camera in the tilemap and draws the tile images
         for x in self.tilemap.visible_x:
             for y in self.tilemap.visible_y:
                 tile_id = self.tilemap.grid[x][y]
@@ -34,9 +36,12 @@ class Main():
         pygame.draw.rect(self.viewport, (0,0,0), self.tilemap.cursor)
         pygame.draw.rect(self.viewport, (0,0,0), self.player.rect)
 
+        # Scale viewport up and blit onto screen for pixel art effect + good performance
         scaled_viewport = pygame.transform.scale(self.viewport, self.screen.get_size())
-
         self.screen.blit(scaled_viewport, (0,0))
+
+        # Anything to be rendered at full res (UI, etc) should be put below and drawn onto screen instead of viewport
+        fps_text = self.font.render(f'{int(self.clock.get_fps())}', True, (255, 255, 0))
         self.screen.blit(fps_text, fps_text.get_rect(center=(25 * SCREEN_SCALE_FACTOR, 15 * SCREEN_SCALE_FACTOR)))
     
     def run(self):

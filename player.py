@@ -23,11 +23,6 @@ class Player():
         self.jump_force = -3.5
 
     def update(self, delta, keys):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-
         self.direction = -int(keys[pygame.K_a]) + int(keys[pygame.K_d])
         self.want_to_jump = keys[pygame.K_w]
 
@@ -41,7 +36,7 @@ class Player():
         self.dx = self.x + self.width
         self.dy = self.y + self.height
 
-        # collision is based off tiles surrounding the player
+        # Get the surrounding tiles around the player and if there are any tiles, do collision
         self.is_on_ground = False
         self.below_tile = self.tilemap.world_to_tile(self.x + self.width / 2, self.dy)
         self.above_tile = self.tilemap.world_to_tile(self.x + self.width / 2, self.y)
@@ -63,7 +58,7 @@ class Player():
             self.x = (self.left_tile.x + 1) * TILE_SIZE
             self.velocity.x = 0
 
-        # borders of world
+        # Collision with world borders
         if self.x < 0:
             self.x = 0
             self.velocity.x = 0
