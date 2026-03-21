@@ -18,7 +18,7 @@ class Main():
 
         self.tilemap = TileMap()
         self.tilemap.generate_world()
-        
+
         self.camera = Camera(0, 0, True)
         self.player = Player(100, 100, 7, 15, self.tilemap)
 
