@@ -19,13 +19,14 @@ class Main():
         self.tilemap = TileMap()
         self.tilemap.generate_world()
 
-        self.camera = Camera(0, 0, True)
+        self.camera = Camera(0, 0, False)
         self.player = Player(100, 100, 7, 15, self.tilemap)
 
         self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
 
     def render(self):
         # Draw any pixel art on viewport to keep pixels
+        self.screen.fill((0,0,0))
         self.viewport.fill((95,125,245))
 
         # Iterates through the visible tiles on camera in the tilemap and draws the tile images
@@ -35,7 +36,7 @@ class Main():
                 if tile_id >= 1:
                     block_image = self.tilemap.block_images[tile_id - 1]
                     block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
-                    self.viewport.blit(block_image, pygame.Rect(x * TILE_SIZE - self.camera.x, y * TILE_SIZE - self.camera.y, TILE_SIZE, TILE_SIZE))
+                    self.viewport.blit(block_image, pygame.Rect(math.floor(x * TILE_SIZE - self.camera.x), math.floor(y * TILE_SIZE - self.camera.y), TILE_SIZE, TILE_SIZE))
 
         pygame.draw.rect(self.viewport, (0,0,0), self.tilemap.cursor)
         pygame.draw.rect(self.viewport, (0,0,0), self.player.rect)
