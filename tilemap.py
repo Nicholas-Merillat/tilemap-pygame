@@ -1,12 +1,9 @@
-import pygame, math, numpy, concurrent.futures
 from settings import *
 
 class TileMap():
     def __init__(self):
         self.cursor = pygame.Rect(0, 0, TILE_SIZE, TILE_SIZE)
         self.camera = pygame.math.Vector2(0, 0)
-        self.visible_tiles_x = math.ceil(VIEWPORT_RESOLUTION[0] / TILE_SIZE)
-        self.visible_tiles_y = math.ceil(VIEWPORT_RESOLUTION[1] / TILE_SIZE)
 
         self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
 
@@ -57,5 +54,7 @@ class TileMap():
 
         # Range used to see which tiles to render on screen based on what the camera can see
         camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
+        self.visible_tiles_x = math.ceil((VIEWPORT_RESOLUTION[0] - self.camera.zoom) / TILE_SIZE)
+        self.visible_tiles_y = math.ceil((VIEWPORT_RESOLUTION[1] - (self.camera.zoom / ASPECT_SCALE_FACTOR)) / TILE_SIZE)
         self.visible_x = range(max(0, int(camera_to_tile.x) - 1), min(int(camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
         self.visible_y = range(max(0, int(camera_to_tile.y) - 1), min(int(camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
