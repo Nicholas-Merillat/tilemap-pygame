@@ -12,14 +12,16 @@ class Main():
 
         self.viewport = pygame.Surface(VIEWPORT_RESOLUTION)
         self.screen = pygame.display.set_mode(SCREEN_RESOLUTION, pygame.RESIZABLE)
+        self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
+
         self.clock = pygame.time.Clock()
-        self.font_big = pygame.font.SysFont('Monospace', int(24 * SCREEN_SCALE_FACTOR), True)
+        self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
 
         self.tilemap = TileMap()
         self.tilemap.generate_world()
 
         self.camera = Camera(0, 0, False)
-        self.player = Player(0, 0, 7, 15, self.tilemap)
+        self.player = Player(100, 100, 7, 15, self.tilemap)
 
         self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
 
@@ -40,26 +42,34 @@ class Main():
         pygame.draw.rect(self.viewport, (0,0,0), self.tilemap.cursor)
         pygame.draw.rect(self.viewport, (0,0,0), self.player.rect)
 
+        lightmap = self.tilemap.calculate_lighting()
+        lightmap = pygame.transform.scale(lightmap, (lightmap.size[0] * TILE_SIZE, lightmap.size[1] * TILE_SIZE))
+        self.viewport.blit(lightmap, (0 - (self.camera.x % TILE_SIZE), 0 - (self.camera.y % TILE_SIZE)), special_flags=pygame.BLEND_MULT)
+
         # Scale viewport up and blit onto screen for pixel art effect + good performance
         pygame.transform.scale(self.viewport, self.screen.get_size(), self.screen)
 
         # Anything to be rendered at full res (UI, etc) should be put below and drawn onto screen instead of viewport
         fps_text = self.font_big.render(f'{int(self.clock.get_fps())}', True, (255, 255, 0))
-        self.screen.blit(fps_text, fps_text.get_rect(center=(25 * SCREEN_SCALE_FACTOR, 15 * SCREEN_SCALE_FACTOR)))
+        self.screen.blit(fps_text, fps_text.get_rect(center=(25 * self.screen_scale_factor.x, 15 * self.screen_scale_factor.y)))
     
     def run(self):
         while True:
             self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
+            self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.VIDEORESIZE:
+                    self.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
 
             self.mouse_position = pygame.math.Vector2(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
-            self.mouse_position_tile = self.tilemap.screen_to_tile((self.mouse_position.x / SCREEN_SCALE_FACTOR) / self.camera.zoom_scale_factor, (self.mouse_position.y / SCREEN_SCALE_FACTOR) / self.camera.zoom_scale_factor)
+            self.mouse_position_tile = self.tilemap.screen_to_tile((self.mouse_position.x / self.screen_scale_factor.x) / self.camera.zoom_scale_factor, (self.mouse_position.y / self.screen_scale_factor.y) / self.camera.zoom_scale_factor)
             self.mouse_pressed = pygame.mouse.get_pressed()
-            self.mouse_in_window = self.mouse_position.x > 0 and self.mouse_position.x < self.screen.get_size()[0] and self.mouse_position.y > 0 and self.mouse_position.y < self.screen.get_size()[1]
-            if self.mouse_in_window:
+
+            if pygame.mouse.get_focused():
                 if self.mouse_pressed[0]:
                     self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 0)
                 elif self.mouse_pressed[2]:
