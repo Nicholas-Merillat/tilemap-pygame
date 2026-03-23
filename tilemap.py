@@ -1,9 +1,9 @@
 from settings import *
 
 class TileMap():
-    def __init__(self):
+    def __init__(self, camera):
         self.cursor = pygame.Rect(0, 0, TILE_SIZE, TILE_SIZE)
-        self.camera = pygame.math.Vector2(0, 0)
+        self.camera = camera
 
         self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
 
@@ -49,23 +49,10 @@ class TileMap():
             self.grid[x][range(y + 1, y + 9)] = 2
             self.grid[x][range(y + 9, TILEMAP_SIZE[1])] = 3
     
-    def update(self, camera):
-        self.camera = camera
-
+    def update(self):
         # Range used to see which tiles to render on screen based on what the camera can see
         self.camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
         self.visible_tiles_x = math.ceil((VIEWPORT_RESOLUTION[0] - self.camera.zoom) / TILE_SIZE)
         self.visible_tiles_y = math.ceil((VIEWPORT_RESOLUTION[1] - (self.camera.zoom / ASPECT_SCALE_FACTOR)) / TILE_SIZE)
         self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
         self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
-
-    def calculate_lighting(self) -> pygame.Surface:
-        lightmap = numpy.full((len(self.visible_x), len(self.visible_y), 3), numpy.uint8(150))
-
-        for x in self.visible_x:
-            for y in self.visible_y:
-                if self.grid[x][y] == 0:
-                    lightmap[int(x - self.camera_to_tile.x)][int(y - self.camera_to_tile.y)] = (255,255,255)
-
-        lightmap_surface = pygame.surfarray.make_surface(lightmap)
-        return lightmap_surface

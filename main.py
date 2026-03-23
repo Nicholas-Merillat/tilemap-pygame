@@ -17,10 +17,11 @@ class Main():
         self.clock = pygame.time.Clock()
         self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
 
-        self.tilemap = TileMap()
+        self.camera = Camera(0, 0, False)
+
+        self.tilemap = TileMap(self.camera)
         self.tilemap.generate_world()
 
-        self.camera = Camera(0, 0, False)
         self.player = Player(100, 100, 7, 15, self.tilemap)
 
         self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
@@ -41,10 +42,6 @@ class Main():
 
         pygame.draw.rect(self.viewport, (0,0,0), self.tilemap.cursor)
         pygame.draw.rect(self.viewport, (0,0,0), self.player.rect)
-
-        lightmap = self.tilemap.calculate_lighting()
-        lightmap = pygame.transform.scale(lightmap, (lightmap.size[0] * TILE_SIZE, lightmap.size[1] * TILE_SIZE))
-        self.viewport.blit(lightmap, (0 - (self.camera.x % TILE_SIZE), 0 - (self.camera.y % TILE_SIZE)), special_flags=pygame.BLEND_MULT)
 
         # Scale viewport up and blit onto screen for pixel art effect + good performance
         pygame.transform.scale(self.viewport, self.screen.get_size(), self.screen)
@@ -80,8 +77,8 @@ class Main():
 
             self.keys = pygame.key.get_pressed()
             self.player.update(self.delta, self.keys)
-            self.camera.update(self.delta, self.player, self.keys)
-            self.tilemap.update(self.camera)
+            self.camera.update(self.delta, self.keys, self.player)
+            self.tilemap.update()
 
             self.render()
             pygame.display.flip()
