@@ -37,10 +37,10 @@ class Player():
 
         # Get the surrounding tiles around the player and if there are any tiles, do collision
         self.is_on_ground = False
-        self.below_tile = self.tilemap.world_to_tile(self.x + self.width / 2, self.dy)
-        self.above_tile = self.tilemap.world_to_tile(self.x + self.width / 2, self.y)
-        self.right_tile = self.tilemap.world_to_tile(self.dx, self.y + self.height / 2)
-        self.left_tile = self.tilemap.world_to_tile(self.x, self.y + self.height / 2)
+        self.below_tile = self.tilemap.world_to_tile(self.x + self.width * 0.5, self.dy)
+        self.above_tile = self.tilemap.world_to_tile(self.x + self.width * 0.5, self.y)
+        self.right_tile = self.tilemap.world_to_tile(self.dx, self.y + self.height * 0.5)
+        self.left_tile = self.tilemap.world_to_tile(self.x, self.y + self.height * 0.5)
 
         if self.tilemap.grid[int(self.below_tile.x)][int(self.below_tile.y)] != 0 and self.velocity.y >= 0:
             self.y = self.below_tile.y * TILE_SIZE - self.height
