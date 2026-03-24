@@ -1,22 +1,24 @@
 from settings import *
 
 class TileMap():
-    def __init__(self):
-        self.cursor = pygame.Rect(0, 0, TILE_SIZE, TILE_SIZE)
-        self.camera = pygame.math.Vector2(0, 0)
+    def __init__(self, camera):
+        self.cursor = pygame.surface.Surface((TILE_SIZE, TILE_SIZE))
+        self.cursor.fill((75,75,75))
+        self.camera = camera
 
-        self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
+        self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint16(0))
+        self.bitmask_dict = {0:(0,0), 1:(0,8), 2:(0,16), 3:(0,24), 4:(8,0), 5:(8,8), 6:(8,16), 7:(8,24), 8:(16,0), 9:(16,8), 10:(16,16), 11:(16,24), 12:(24,0), 13:(24,8), 14:(24,16), 15:(24,24)}
 
         with open('content/blocks.txt', 'r') as file:
             file_content = file.read()
             blocks = file_content.splitlines()
-            self.block_images = []
+            self.tile_images = []
             for block in blocks:
                 if block != 'air':
                     image_path = f'content/sprites/{block}.png'
                     try:
                         image_surface = pygame.image.load(image_path).convert_alpha()
-                        self.block_images.append(image_surface)
+                        self.tile_images.append(image_surface)
                     except pygame.error as e:
                         print(f'Error loading image {block}: {e}')
 
@@ -49,9 +51,7 @@ class TileMap():
             self.grid[x][range(y + 1, y + 9)] = 2
             self.grid[x][range(y + 9, TILEMAP_SIZE[1])] = 3
     
-    def update(self, camera):
-        self.camera = camera
-
+    def update(self):
         # Range used to see which tiles to render on screen based on what the camera can see
         self.camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
         self.visible_tiles_x = math.ceil((VIEWPORT_RESOLUTION[0] - self.camera.zoom) / TILE_SIZE)
@@ -59,13 +59,25 @@ class TileMap():
         self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
         self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
 
-    def calculate_lighting(self) -> pygame.Surface:
-        lightmap = numpy.full((len(self.visible_x), len(self.visible_y), 3), numpy.uint8(150))
+        self.grid_surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
 
         for x in self.visible_x:
             for y in self.visible_y:
-                if self.grid[x][y] == 0:
-                    lightmap[int(x - self.camera_to_tile.x)][int(y - self.camera_to_tile.y)] = (255,255,255)
+                tile_id = self.grid[x][y]
+                if tile_id >= 1:
+                    tile_image = self.tile_images[tile_id - 1]
+                    bitmask_counter = numpy.uint8(0)
 
-        lightmap_surface = pygame.surfarray.make_surface(lightmap)
-        return lightmap_surface
+                    if self.grid[x][y-1] == tile_id: # north
+                        bitmask_counter += 2**0
+                    if self.grid[x-1][y] == tile_id: # west
+                        bitmask_counter += 2**1
+                    if self.grid[x+1][y] == tile_id: # east
+                        bitmask_counter += 2**2
+                    if self.grid[x][y+1] == tile_id: # south
+                        bitmask_counter += 2**3
+
+                    block_rect = pygame.Rect(self.bitmask_dict[bitmask_counter][1], self.bitmask_dict[bitmask_counter][0], TILE_SIZE, TILE_SIZE)
+                    block_image = tile_image.subsurface(block_rect)
+                    block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
+                    self.grid_surface.blit(block_image, pygame.Rect(math.floor(x * TILE_SIZE - self.camera.x), math.floor(y * TILE_SIZE - self.camera.y), TILE_SIZE, TILE_SIZE))

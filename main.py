@@ -11,19 +11,18 @@ class Main():
         pygame.display.set_icon(pygame.image.load('content/icon.png'))
 
         self.viewport = pygame.Surface(VIEWPORT_RESOLUTION)
-        self.screen = pygame.display.set_mode(SCREEN_RESOLUTION, pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode(SCREEN_RESOLUTION)
         self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
 
         self.clock = pygame.time.Clock()
         self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
 
-        self.tilemap = TileMap()
+        self.camera = Camera(0, 0, True)
+
+        self.tilemap = TileMap(self.camera)
         self.tilemap.generate_world()
 
-        self.camera = Camera(0, 0, False)
         self.player = Player(100, 100, 7, 15, self.tilemap)
-
-        self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
 
     def render(self):
         # Draw any pixel art on viewport to keep pixels
@@ -31,20 +30,12 @@ class Main():
         self.viewport.fill((95,125,245))
 
         # Iterates through the visible tiles on camera in the tilemap and draws the tile images
-        for x in self.tilemap.visible_x:
-            for y in self.tilemap.visible_y:
-                tile_id = self.tilemap.grid[x][y]
-                if tile_id >= 1:
-                    block_image = self.tilemap.block_images[tile_id - 1]
-                    block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
-                    self.viewport.blit(block_image, pygame.Rect(math.floor(x * TILE_SIZE - self.camera.x), math.floor(y * TILE_SIZE - self.camera.y), TILE_SIZE, TILE_SIZE))
+        self.viewport.blit(self.tilemap.grid_surface, (0,0))
 
-        pygame.draw.rect(self.viewport, (0,0,0), self.tilemap.cursor)
+        #if self.tilemap.grid[int(self.mouse_position_tile.x)][int(self.mouse_position_tile.y)] != 0:
+        self.viewport.blit(self.tilemap.cursor, (self.mouse_position_tile.x * TILE_SIZE - self.camera.x, self.mouse_position_tile.y * TILE_SIZE - self.camera.y), special_flags=pygame.BLEND_ADD)
+
         pygame.draw.rect(self.viewport, (0,0,0), self.player.rect)
-
-        lightmap = self.tilemap.calculate_lighting()
-        lightmap = pygame.transform.scale(lightmap, (lightmap.size[0] * TILE_SIZE, lightmap.size[1] * TILE_SIZE))
-        self.viewport.blit(lightmap, (0 - (self.camera.x % TILE_SIZE), 0 - (self.camera.y % TILE_SIZE)), special_flags=pygame.BLEND_MULT)
 
         # Scale viewport up and blit onto screen for pixel art effect + good performance
         pygame.transform.scale(self.viewport, self.screen.get_size(), self.screen)
@@ -52,8 +43,10 @@ class Main():
         # Anything to be rendered at full res (UI, etc) should be put below and drawn onto screen instead of viewport
         fps_text = self.font_big.render(f'{int(self.clock.get_fps())}', True, (255, 255, 0))
         self.screen.blit(fps_text, fps_text.get_rect(center=(25 * self.screen_scale_factor.x, 15 * self.screen_scale_factor.y)))
-    
+
     def run(self):
+        self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
+        self.mouse_position = pygame.math.Vector2(0,0)
         while True:
             self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
             self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
@@ -73,18 +66,15 @@ class Main():
                 if self.mouse_pressed[0]:
                     self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 0)
                 elif self.mouse_pressed[2]:
-                    self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 2)
-
-            self.tilemap.cursor.x = (self.mouse_position_tile.x * TILE_SIZE - self.camera.x)
-            self.tilemap.cursor.y = (self.mouse_position_tile.y * TILE_SIZE - self.camera.y)
+                    self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 1)
 
             self.keys = pygame.key.get_pressed()
             self.player.update(self.delta, self.keys)
-            self.camera.update(self.delta, self.player, self.keys)
-            self.tilemap.update(self.camera)
+            self.camera.update(self.delta, self.keys, self.player)
+            self.tilemap.update()
 
             self.render()
-            pygame.display.flip()
+            pygame.display.update()
 
 if __name__ == '__main__':
     main = Main()
