@@ -1,7 +1,7 @@
 import pygame, math, numpy, sys
 
 # User settings
-SCREEN_RESOLUTION = (1920, 1080)
+SCREEN_RESOLUTION = (1280, 720)
 MAX_FPS = 0 # If 0, framerate is uncapped
 
 # ENGINE SETTINGS BELOW DO NOT EDIT!
@@ -13,4 +13,4 @@ PHYSICS_FPS = 60
 
 # Tilemap settings
 TILE_SIZE = 8
-TILEMAP_SIZE = (400, 300) # (8400, 2400) (4200, 1200)
+TILEMAP_SIZE = (200, 200) # (8400, 2400) (4200, 1200)

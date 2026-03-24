@@ -11,7 +11,7 @@ class Main():
         pygame.display.set_icon(pygame.image.load('content/icon.png'))
 
         self.viewport = pygame.Surface(VIEWPORT_RESOLUTION)
-        self.screen = pygame.display.set_mode(SCREEN_RESOLUTION)
+        self.screen = pygame.display.set_mode(SCREEN_RESOLUTION, pygame.DOUBLEBUF)
         self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
 
         self.clock = pygame.time.Clock()
@@ -29,8 +29,8 @@ class Main():
         self.viewport = pygame.Surface((VIEWPORT_RESOLUTION[0] - self.camera.zoom, VIEWPORT_RESOLUTION[1] - self.camera.zoom / ASPECT_SCALE_FACTOR))
         self.viewport.fill((95,125,245))
 
-        # Iterates through the visible tiles on camera in the tilemap and draws the tile images
-        self.viewport.blit(self.tilemap.grid_surface, (0,0))
+        # Blit only the whats visible to the camera from the tilemap to viewport
+        self.viewport.blit(self.tilemap.texture_surface, (0,0), (math.ceil(0 + self.camera.x), math.ceil(0 + self.camera.y), math.ceil(VIEWPORT_RESOLUTION[0] + self.camera.x), math.ceil(VIEWPORT_RESOLUTION[1] + self.camera.y)))
 
         #if self.tilemap.grid[int(self.mouse_position_tile.x)][int(self.mouse_position_tile.y)] != 0:
         self.viewport.blit(self.tilemap.cursor, (self.mouse_position_tile.x * TILE_SIZE - self.camera.x, self.mouse_position_tile.y * TILE_SIZE - self.camera.y), special_flags=pygame.BLEND_ADD)
@@ -46,7 +46,6 @@ class Main():
 
     def run(self):
         self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
-        self.mouse_position = pygame.math.Vector2(0,0)
         while True:
             self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
             self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
@@ -58,7 +57,7 @@ class Main():
                 elif event.type == pygame.VIDEORESIZE:
                     self.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
 
-            self.mouse_position = pygame.math.Vector2(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
+            self.mouse_position = pygame.math.Vector2(pygame.mouse.get_pos())
             self.mouse_position_tile = self.tilemap.screen_to_tile((self.mouse_position.x / self.screen_scale_factor.x) / self.camera.zoom_scale_factor, (self.mouse_position.y / self.screen_scale_factor.y) / self.camera.zoom_scale_factor)
             self.mouse_pressed = pygame.mouse.get_pressed()
 
