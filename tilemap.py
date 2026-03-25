@@ -6,9 +6,13 @@ class TileMap():
         self.cursor.fill((75,75,75))
         self.camera = camera
 
-        self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint16(0))
-        self.bitmask_grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint8(0))
-        self.bitmask_dict = {0:(0,0), 1:(0,8), 2:(0,16), 3:(0,24), 4:(8,0), 5:(8,8), 6:(8,16), 7:(8,24), 8:(16,0), 9:(16,8), 10:(16,16), 11:(16,24), 12:(24,0), 13:(24,8), 14:(24,16), 15:(24,24)}
+        self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint64(0))
+        self.bitmask_grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint64(0))
+
+        # Kinda poopy
+        self.bitmask_offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
+        self.bitmask_dict = {0:(0,0), 1:(0,8), 2:(0,16), 3:(0,24), 4:(8,0), 5:(8,8), 6:(8,16), 7:(8,24), 8:(16,0), 9:(16,8), 10:(16,16), 11:(16,24), 12:(24,0), 13:(24,8), 14:(24,16), 15:(24,24), 16:(24,24)}
+        self.tile_friends = [(0), (1,2), (2), (3)]
 
         with open('content/blocks.txt', 'r') as file:
             file_content = file.read()
@@ -28,7 +32,6 @@ class TileMap():
     # Set tile ID at tile position
     def set_tile(self, tile_x, tile_y, tile_id):
         self.grid[tile_x][tile_y] = tile_id
-        self.texture()
 
     # Get tile ID at tile position
     def get_tile(self, tile_x, tile_y):
@@ -60,53 +63,30 @@ class TileMap():
             self.grid[x][y] = 1
             self.grid[x][range(y + 1, y + 9)] = 2
             self.grid[x][range(y + 9, TILEMAP_SIZE[1])] = 3
-        self.texture()
+    
+    def update(self):
+        # Range used to see which tiles to render on screen based on what the camera can see
+        self.camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
+        self.visible_tiles_x = math.ceil((VIEWPORT_RESOLUTION[0] - self.camera.zoom) / TILE_SIZE)
+        self.visible_tiles_y = math.ceil((VIEWPORT_RESOLUTION[1] - (self.camera.zoom / ASPECT_SCALE_FACTOR)) / TILE_SIZE)
+        self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
+        self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
 
-    def bitmask(self):
-        for x in range(len(self.grid)):
-            for y in range(len(self.grid[x])):
-                tile_id = self.grid[x][y]
-                if tile_id >= 1:
-                    bitmask_counter = numpy.uint8(0)
+        self.texture_surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
 
-                    # In a try catch because edge tiles obv cant index past the edges so I just brute force it, this is why world border tiles autotile weird
-                    try:
-                        if self.grid[x][y-1] == tile_id: # North
-                            bitmask_counter += 2**0
-                        if self.grid[x-1][y] == tile_id: # West
-                            bitmask_counter += 2**1
-                        if self.grid[x+1][y] == tile_id: # East
-                            bitmask_counter += 2**2
-                        if self.grid[x][y+1] == tile_id: # South
-                            bitmask_counter += 2**3
-                    except:
-                        pass
-
-                    self.bitmask_grid[x][y] = bitmask_counter
-
-    def texture(self):
-        self.bitmask()
-        self.texture_surface = pygame.surface.Surface((TILEMAP_SIZE[0] * TILE_SIZE, TILEMAP_SIZE[1] * TILE_SIZE), pygame.SRCALPHA)
-
-        for x in range(len(self.grid)):
-            for y in range(len(self.grid[x])):
+        for x in self.visible_x:
+            for y in self.visible_y:
                 tile_id = self.grid[x][y]
                 if tile_id >= 1:
                     tile_image = self.tile_images[tile_id - 1]
+                    bitmask = 0
+                    for dx, dy, bit in self.bitmask_offsets:
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
+                            if self.grid[nx][ny] == tile_id:
+                                bitmask |= (1 << bit)
 
-                    block_rect = pygame.Rect(self.bitmask_dict[self.bitmask_grid[x][y]][1], self.bitmask_dict[self.bitmask_grid[x][y]][0], TILE_SIZE, TILE_SIZE)
-                    block_image = tile_image.subsurface(block_rect)
-                    block_image = pygame.transform.scale(block_image, (TILE_SIZE, TILE_SIZE))
-                    self.texture_surface.blit(block_image, pygame.Rect(math.floor(x * TILE_SIZE), math.floor(y * TILE_SIZE), TILE_SIZE, TILE_SIZE))
 
-    def update_texture(self, x, y):
-        pass
-    
-    def update(self):
-        pass
-        # Range used to see which tiles to render on screen based on what the camera can see
-        # self.camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
-        # self.visible_tiles_x = math.ceil((VIEWPORT_RESOLUTION[0] - self.camera.zoom) / TILE_SIZE)
-        # self.visible_tiles_y = math.ceil((VIEWPORT_RESOLUTION[1] - (self.camera.zoom / ASPECT_SCALE_FACTOR)) / TILE_SIZE)
-        # self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
-        # self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
+                    block_rect = pygame.Rect(self.bitmask_dict[bitmask][1], self.bitmask_dict[bitmask][0], TILE_SIZE, TILE_SIZE)
+                    block_image = pygame.transform.scale(tile_image.subsurface(block_rect), (TILE_SIZE, TILE_SIZE))
+                    self.texture_surface.blit(block_image, pygame.Rect(math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE))

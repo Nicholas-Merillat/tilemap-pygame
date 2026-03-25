@@ -1,7 +1,7 @@
 import pygame, math, numpy, sys
 
 # User settings
-SCREEN_RESOLUTION = (1280, 720)
+SCREEN_RESOLUTION = (1920, 1080)
 MAX_FPS = 0 # If 0, framerate is uncapped
 
 # ENGINE SETTINGS BELOW DO NOT EDIT!

@@ -22,15 +22,15 @@ class Main():
         self.tilemap = TileMap(self.camera)
         self.tilemap.generate_world()
 
-        self.player = Player(100, 100, 7, 15, self.tilemap)
+        self.player = Player((TILEMAP_SIZE[0] * TILE_SIZE) / 2, 150, 7, 15, self.tilemap)
 
     def render(self):
         # Draw any pixel art on viewport to keep pixels
         self.viewport = pygame.Surface((VIEWPORT_RESOLUTION[0] - self.camera.zoom, VIEWPORT_RESOLUTION[1] - self.camera.zoom / ASPECT_SCALE_FACTOR))
-        self.viewport.fill((95,125,245))
+        self.viewport.fill((165,215,240))
 
         # Blit only the whats visible to the camera from the tilemap to viewport
-        self.viewport.blit(self.tilemap.texture_surface, (0,0), (math.ceil(0 + self.camera.x), math.ceil(0 + self.camera.y), math.ceil(VIEWPORT_RESOLUTION[0] + self.camera.x), math.ceil(VIEWPORT_RESOLUTION[1] + self.camera.y)))
+        self.viewport.blit(self.tilemap.texture_surface, (0,0))
 
         #if self.tilemap.grid[int(self.mouse_position_tile.x)][int(self.mouse_position_tile.y)] != 0:
         self.viewport.blit(self.tilemap.cursor, (self.mouse_position_tile.x * TILE_SIZE - self.camera.x, self.mouse_position_tile.y * TILE_SIZE - self.camera.y), special_flags=pygame.BLEND_ADD)
@@ -71,9 +71,9 @@ class Main():
             self.player.update(self.delta, self.keys)
             self.camera.update(self.delta, self.keys, self.player)
             self.tilemap.update()
-
+            
             self.render()
-            pygame.display.update()
+            pygame.display.flip()
 
 if __name__ == '__main__':
     main = Main()
