@@ -1,5 +1,7 @@
 from settings import *
 
+from tileset import TileSet
+
 class TileMap():
     def __init__(self, camera):
         self.cursor = pygame.surface.Surface((TILE_SIZE, TILE_SIZE))
@@ -18,16 +20,16 @@ class TileMap():
             file_content = file.read()
             blocks = file_content.splitlines()
             self.tile_images = []
+            self.tilesets = []
             for block in blocks:
                 if block != 'air':
                     image_path = f'content/sprites/{block}.png'
                     try:
                         image_surface = pygame.image.load(image_path).convert_alpha()
                         self.tile_images.append(image_surface)
+                        self.tilesets.append(TileSet(block, image_surface))
                     except pygame.error as e:
                         print(f'Error loading image {block}: {e}')
-
-        self.update()
 
     # Set tile ID at tile position
     def set_tile(self, tile_x, tile_y, tile_id):
@@ -79,14 +81,14 @@ class TileMap():
                 tile_id = self.grid[x][y]
                 if tile_id >= 1:
                     tile_image = self.tile_images[tile_id - 1]
-                    bitmask = 0
-                    for dx, dy, bit in self.bitmask_offsets:
-                        nx, ny = x + dx, y + dy
-                        if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
-                            if self.grid[nx][ny] == tile_id:
-                                bitmask |= (1 << bit)
+                    # bitmask = 0
+                    # for dx, dy, bit in self.bitmask_offsets:
+                    #     nx, ny = x + dx, y + dy
+                    #     if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
+                    #         if self.grid[nx][ny] == tile_id:
+                    #             bitmask |= (1 << bit)
 
 
-                    block_rect = pygame.Rect(self.bitmask_dict[bitmask][1], self.bitmask_dict[bitmask][0], TILE_SIZE, TILE_SIZE)
+                    block_rect = pygame.Rect(0, 0, TILE_SIZE, TILE_SIZE)
                     block_image = pygame.transform.scale(tile_image.subsurface(block_rect), (TILE_SIZE, TILE_SIZE))
                     self.texture_surface.blit(block_image, pygame.Rect(math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE))
