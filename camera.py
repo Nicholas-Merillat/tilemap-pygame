@@ -10,7 +10,7 @@ class Camera():
         self.zoom = 0
         self.zoom_scale_factor = VIEWPORT_RESOLUTION[0] / (VIEWPORT_RESOLUTION[0] - self.zoom)
 
-        self.smoothing_speed = 0.04
+        self.smoothing_speed = 0.3
         self.limit_left = 0
         self.limit_top = 0
         self.limit_right = TILEMAP_SIZE[0] * TILE_SIZE
@@ -28,8 +28,8 @@ class Camera():
         self.zoom_scale_factor = VIEWPORT_RESOLUTION[0] / (VIEWPORT_RESOLUTION[0] - self.zoom)
 
         if self.smooth_position:
-            self.x = pygame.math.lerp(self.x, ((entity.x + entity.width * 0.5) - VIEWPORT_RESOLUTION[0] * 0.5) + self.zoom * 0.5, self.smoothing_speed * delta)
-            self.y = pygame.math.lerp(self.y, ((entity.y + entity.height * 0.5) - VIEWPORT_RESOLUTION[1] * 0.5 + (self.zoom * 0.5) / ASPECT_SCALE_FACTOR), self.smoothing_speed * delta)
+            self.x = pygame.math.lerp(self.x, ((entity.x + entity.width * 0.5) - VIEWPORT_RESOLUTION[0] * 0.5) + self.zoom * 0.5, easeInQuad(self.smoothing_speed) * delta)
+            self.y = pygame.math.lerp(self.y, ((entity.y + entity.height * 0.5) - VIEWPORT_RESOLUTION[1] * 0.5 + (self.zoom * 0.5) / ASPECT_SCALE_FACTOR), easeInQuad(self.smoothing_speed) * delta)
         else:
             self.x = ((entity.x + entity.width * 0.5) - VIEWPORT_RESOLUTION[0] * 0.5) + self.zoom * 0.5
             self.y = ((entity.y + entity.height * 0.5) - VIEWPORT_RESOLUTION[1] * 0.5) + (self.zoom * 0.5) / ASPECT_SCALE_FACTOR

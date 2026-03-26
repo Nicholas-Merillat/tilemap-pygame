@@ -8,28 +8,23 @@ class TileMap():
         self.cursor.fill((75,75,75))
         self.camera = camera
 
-        self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint64(0))
-        self.bitmask_grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), numpy.uint64(0))
+        self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
+        self.offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
 
-        # Kinda poopy
-        self.bitmask_offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
-        self.bitmask_dict = {0:(0,0), 1:(0,8), 2:(0,16), 3:(0,24), 4:(8,0), 5:(8,8), 6:(8,16), 7:(8,24), 8:(16,0), 9:(16,8), 10:(16,16), 11:(16,24), 12:(24,0), 13:(24,8), 14:(24,16), 15:(24,24), 16:(24,24)}
-        self.tile_friends = [(0), (1,2), (2), (3)]
-
+        # Load tilesets
+        self.tilesets = []
         with open('content/blocks.txt', 'r') as file:
             file_content = file.read()
-            blocks = file_content.splitlines()
-            self.tile_images = []
-            self.tilesets = []
-            for block in blocks:
-                if block != 'air':
-                    image_path = f'content/sprites/{block}.png'
+            tiles = file_content.splitlines()
+            for tile in tiles:
+                if tile != 'air':
+                    image_path = f'content/sprites/{tile}-old.png'
                     try:
-                        image_surface = pygame.image.load(image_path).convert_alpha()
-                        self.tile_images.append(image_surface)
-                        self.tilesets.append(TileSet(block, image_surface))
+                        surface = pygame.image.load(image_path)
+                        surface = surface.convert_alpha()
+                        self.tilesets.append(TileSet(tile, surface))
                     except pygame.error as e:
-                        print(f'Error loading image {block}: {e}')
+                        print(f'Error loading tileset {tile}: {e}')
 
     # Set tile ID at tile position
     def set_tile(self, tile_x, tile_y, tile_id):
@@ -61,10 +56,10 @@ class TileMap():
         # Generate surface grass with a sin function then fill below 10 layers with dirt, rest stone
 
         for x in range(TILEMAP_SIZE[0]):
-            y = int(math.sin(x / 14) * 4) + 40
-            self.grid[x][y] = 1
-            self.grid[x][range(y + 1, y + 9)] = 2
-            self.grid[x][range(y + 9, TILEMAP_SIZE[1])] = 3
+            y = int(math.sin(x / 20) * 4) + 40
+            self.set_tile(x, y, 1)
+            self.set_tile(x, range(y + 1, y + 9), 2)
+            self.set_tile(x, range(y + 9, TILEMAP_SIZE[1]), 3)
     
     def update(self):
         # Range used to see which tiles to render on screen based on what the camera can see
@@ -74,21 +69,18 @@ class TileMap():
         self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
         self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
 
-        self.texture_surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
+        self.surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
 
         for x in self.visible_x:
             for y in self.visible_y:
-                tile_id = self.grid[x][y]
+                tile_id = self.grid[x, y] # Accessing directly instead of using get_tile is marginally faster
                 if tile_id >= 1:
-                    tile_image = self.tile_images[tile_id - 1]
-                    # bitmask = 0
-                    # for dx, dy, bit in self.bitmask_offsets:
-                    #     nx, ny = x + dx, y + dy
-                    #     if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
-                    #         if self.grid[nx][ny] == tile_id:
-                    #             bitmask |= (1 << bit)
+                    bitmask = 0
+                    
+                    for dx, dy, bit in self.offsets:
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
+                            if self.grid[nx, ny] == tile_id:
+                                bitmask |= (1 << bit)
 
-
-                    block_rect = pygame.Rect(0, 0, TILE_SIZE, TILE_SIZE)
-                    block_image = pygame.transform.scale(tile_image.subsurface(block_rect), (TILE_SIZE, TILE_SIZE))
-                    self.texture_surface.blit(block_image, pygame.Rect(math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE))
+                    self.surface.blit(self.tilesets[tile_id - 1].get_tile_surface(bitmask), pygame.Rect(math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE))

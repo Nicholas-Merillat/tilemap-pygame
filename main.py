@@ -4,15 +4,20 @@ from tilemap import TileMap
 from player import Player
 from camera import Camera
 
+# Have to call this or else fetching monitor resolution doesn't work
+ctypes.windll.user32.SetProcessDPIAware()
+
 class Main():
     def __init__(self):
         pygame.init()
         pygame.display.set_caption(F'Tile Map {TILEMAP_SIZE[0]}x{TILEMAP_SIZE[1]}')
         pygame.display.set_icon(pygame.image.load('content/icon.png'))
+        self.display_resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
         self.viewport = pygame.Surface(VIEWPORT_RESOLUTION)
-        self.screen = pygame.display.set_mode(SCREEN_RESOLUTION, pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(WINDOW_RESOLUTION)
         self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
+        self.fullscreen = False
 
         self.clock = pygame.time.Clock()
         self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
@@ -22,19 +27,20 @@ class Main():
         self.tilemap = TileMap(self.camera)
         self.tilemap.generate_world()
 
-        self.player = Player((TILEMAP_SIZE[0] * TILE_SIZE) / 2, 150, 7, 15, self.tilemap)
+        self.player = Player(0, 200, 7, 15, self.tilemap)
 
     def render(self):
         # Draw any pixel art on viewport to keep pixels
         self.viewport = pygame.Surface((VIEWPORT_RESOLUTION[0] - self.camera.zoom, VIEWPORT_RESOLUTION[1] - self.camera.zoom / ASPECT_SCALE_FACTOR))
         self.viewport.fill((165,215,240))
 
-        # Blit only the whats visible to the camera from the tilemap to viewport
-        self.viewport.blit(self.tilemap.texture_surface, (0,0))
+        # Blit only the whats visible from the camera and tilemap to viewport
+        self.viewport.blit(self.tilemap.surface, (0,0))
 
-        #if self.tilemap.grid[int(self.mouse_position_tile.x)][int(self.mouse_position_tile.y)] != 0:
+        # Tilemap highlight on cursor
         self.viewport.blit(self.tilemap.cursor, (self.mouse_position_tile.x * TILE_SIZE - self.camera.x, self.mouse_position_tile.y * TILE_SIZE - self.camera.y), special_flags=pygame.BLEND_ADD)
 
+        # Player
         pygame.draw.rect(self.viewport, (0,0,0), self.player.rect)
 
         # Scale viewport up and blit onto screen for pixel art effect + good performance
@@ -48,14 +54,22 @@ class Main():
         self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
         while True:
             self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
-            self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                elif event.type == pygame.VIDEORESIZE:
-                    self.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LALT:
+                        if self.fullscreen:
+                            self.fullscreen = False
+                            self.screen = pygame.display.set_mode(WINDOW_RESOLUTION)
+                        else:
+                            self.fullscreen = True
+                            self.screen = pygame.display.set_mode(self.display_resolution, pygame.FULLSCREEN)
+
+                        self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
+                        self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
 
             self.mouse_position = pygame.math.Vector2(pygame.mouse.get_pos())
             self.mouse_position_tile = self.tilemap.screen_to_tile((self.mouse_position.x / self.screen_scale_factor.x) / self.camera.zoom_scale_factor, (self.mouse_position.y / self.screen_scale_factor.y) / self.camera.zoom_scale_factor)
