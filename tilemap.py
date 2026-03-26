@@ -11,6 +11,9 @@ class TileMap():
         self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
         self.offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
 
+        self.surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
+        self.rects = []
+
         # Load tilesets
         self.tilesets = []
         with open('content/blocks.txt', 'r') as file:
@@ -54,7 +57,6 @@ class TileMap():
     
     def generate_world(self):
         # Generate surface grass with a sin function then fill below 10 layers with dirt, rest stone
-
         for x in range(TILEMAP_SIZE[0]):
             y = int(math.sin(x / 20) * 4) + 40
             self.set_tile(x, y, 1)
@@ -69,18 +71,27 @@ class TileMap():
         self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
         self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
 
-        self.surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
+        self.surface.fill((165,215,240))
+        tile_surfaces = []
 
         for x in self.visible_x:
             for y in self.visible_y:
                 tile_id = self.grid[x, y] # Accessing directly instead of using get_tile is marginally faster
                 if tile_id >= 1:
                     bitmask = 0
-                    
-                    for dx, dy, bit in self.offsets:
-                        nx, ny = x + dx, y + dy
-                        if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
-                            if self.grid[nx, ny] == tile_id:
-                                bitmask |= (1 << bit)
 
-                    self.surface.blit(self.tilesets[tile_id - 1].get_tile_surface(bitmask), pygame.Rect(math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE))
+                    # Bit masking for auto tiling
+                    for i in self.offsets:
+                        nx, ny = x + i[0], y + i[1]
+                        if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
+                            if self.grid[nx][ny] == tile_id:
+                                bitmask |= (1 << i[2])
+                    
+                    # for dx, dy, bit in self.offsets:
+                    #     nx, ny = x + dx, y + dy
+                    #     if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
+                    #         if self.grid[nx, ny] == tile_id:
+                    #             bitmask |= (1 << bit)
+
+                    tile_surfaces.append(((self.tilesets[tile_id - 1].get_tile_surface(bitmask)), (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+        self.rects = self.surface.blits(tile_surfaces, True)
