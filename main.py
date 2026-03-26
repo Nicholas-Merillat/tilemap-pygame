@@ -21,9 +21,9 @@ class Main():
 
         self.clock = pygame.time.Clock()
         
-        self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
-        self.font_medium = pygame.font.SysFont('Monospace', int(16 * self.screen_scale_factor.x), True)
-        self.font_small = pygame.font.SysFont('Monospace', int(8 * self.screen_scale_factor.x), True)
+        self.font_big = pygame.font.Font('content/bolds-pixels.ttf', int(24 * self.screen_scale_factor.x))
+        self.font_medium = pygame.font.Font('content/bolds-pixels.ttf', int(16 * self.screen_scale_factor.x))
+        self.font_small = pygame.font.Font('content/bolds-pixels.ttf', int(12 * self.screen_scale_factor.x))
         self.debug_text_color = (255,255,255)
 
         self.camera = Camera(0, 0, True)
@@ -55,11 +55,21 @@ class Main():
 
         # Anything to be rendered at full res (UI, etc) should be put below and drawn onto screen instead of viewport
         fps_text = self.font_big.render(f'{int(self.clock.get_fps())}', True, self.debug_text_color)
-        lighting_text = self.font_medium.render(f'lighting: {self.lighting}', True, self.debug_text_color)
-        player_pos_text = self.font_medium.render(f'player pos: {int(self.player.x)}, {int(self.player.y)}', True, self.debug_text_color)
+        lighting_text = self.font_small.render(f'lighting: {self.lighting}', True, self.debug_text_color)
+        player_pos_text = self.font_small.render(f'player pos: {int(self.player.x)}, {int(self.player.y)}', True, self.debug_text_color)
+        camera_pos_text = self.font_small.render(f'camera pos: {int(self.camera.x)}, {int(self.camera.y)}', True, self.debug_text_color)
+        visible_tiles_text = self.font_small.render(f'visible tiles: {self.tilemap.tile_count}', True, self.debug_text_color)
         self.screen.blit(fps_text, fps_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 15 * self.screen_scale_factor.y)))
-        self.screen.blit(player_pos_text, player_pos_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 50 * self.screen_scale_factor.y)))
-        self.screen.blit(lighting_text, lighting_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 65 * self.screen_scale_factor.y)))
+        self.screen.blit(player_pos_text, player_pos_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 40 * self.screen_scale_factor.y)))
+        self.screen.blit(camera_pos_text, camera_pos_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 50 * self.screen_scale_factor.y)))
+        self.screen.blit(visible_tiles_text, visible_tiles_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 60 * self.screen_scale_factor.y)))
+        self.screen.blit(lighting_text, lighting_text.get_rect(topleft=(25 * self.screen_scale_factor.x, 70 * self.screen_scale_factor.y)))
+
+    def refresh(self):
+        self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
+        self.font_big = pygame.font.Font('content/bolds-pixels.ttf', int(24 * self.screen_scale_factor.x))
+        self.font_medium = pygame.font.Font('content/bolds-pixels.ttf', int(16 * self.screen_scale_factor.x))
+        self.font_small = pygame.font.Font('content/bolds-pixels.ttf', int(12 * self.screen_scale_factor.x))
 
     def run(self):
         self.delta = (self.clock.tick(MAX_FPS) / 1000) * PHYSICS_FPS
@@ -79,8 +89,7 @@ class Main():
                             self.fullscreen = True
                             self.screen = pygame.display.set_mode(self.display_resolution, pygame.FULLSCREEN)
 
-                        self.screen_scale_factor = pygame.math.Vector2(self.screen.size[0] / VIEWPORT_RESOLUTION[0], self.screen.size[1] / VIEWPORT_RESOLUTION[1])
-                        self.font_big = pygame.font.SysFont('Monospace', int(24 * self.screen_scale_factor.x), True)
+                        self.refresh()
                     elif event.key == pygame.K_LSHIFT:
                         self.lighting = not self.lighting
 

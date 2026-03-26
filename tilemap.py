@@ -8,6 +8,7 @@ class TileMap():
         self.cursor.fill((75,75,75))
         self.camera = camera
 
+        self.tile_count = 0
         self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
         self.offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
 
@@ -21,7 +22,7 @@ class TileMap():
             tiles = file_content.splitlines()
             for tile in tiles:
                 if tile != 'air':
-                    image_path = f'content/sprites/{tile}-old.png'
+                    image_path = f'content/sprites/{tile}-fast.png'
                     try:
                         surface = pygame.image.load(image_path)
                         surface = surface.convert_alpha()
@@ -64,6 +65,8 @@ class TileMap():
             self.set_tile(x, range(y + 9, TILEMAP_SIZE[1]), 3)
     
     def update(self):
+        self.tile_count = 0
+
         # Range used to see which tiles to render on screen based on what the camera can see
         self.camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
         self.visible_tiles_x = math.ceil((VIEWPORT_RESOLUTION[0] - self.camera.zoom) / TILE_SIZE)
@@ -74,24 +77,19 @@ class TileMap():
         self.surface.fill((165,215,240))
         tile_surfaces = []
 
-        for x in self.visible_x:
-            for y in self.visible_y:
+        for y in self.visible_y:
+            for x in self.visible_x:
                 tile_id = self.grid[x, y] # Accessing directly instead of using get_tile is marginally faster
                 if tile_id >= 1:
-                    bitmask = 0
+                    self.tile_count += 1
 
                     # Bit masking for auto tiling
-                    for i in self.offsets:
-                        nx, ny = x + i[0], y + i[1]
+                    bitmask = 0
+                    for bit in self.offsets:
+                        nx, ny = x + bit[0], y + bit[1]
                         if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
                             if self.grid[nx][ny] == tile_id:
-                                bitmask |= (1 << i[2])
-                    
-                    # for dx, dy, bit in self.offsets:
-                    #     nx, ny = x + dx, y + dy
-                    #     if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
-                    #         if self.grid[nx, ny] == tile_id:
-                    #             bitmask |= (1 << bit)
+                                bitmask |= (1 << bit[2])
 
                     tile_surfaces.append(((self.tilesets[tile_id - 1].get_tile_surface(bitmask)), (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
         self.rects = self.surface.blits(tile_surfaces, True)
