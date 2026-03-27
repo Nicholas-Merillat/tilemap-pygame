@@ -13,17 +13,18 @@ class TileMap():
         self.light_grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
         self.offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
 
-        self.surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
+        self.surface = pygame.surface.Surface(VIEWPORT_RESOLUTION)
         self.rects = []
 
         # Load tilesets
+        self.black_tile = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
         self.tilesets = []
         with open('content/blocks.txt', 'r') as file:
             file_content = file.read()
             tiles = file_content.splitlines()
             for tile in tiles:
                 if tile != 'air':
-                    image_path = f'content/sprites/{tile}-fast.png'
+                    image_path = f'content/sprites/{tile}-old.png'
                     try:
                         surface = pygame.image.load(image_path)
                         surface = surface.convert_alpha()
@@ -97,14 +98,13 @@ class TileMap():
                     
                     tile = (self.tilesets[tile_id - 1].get_tile_surface(bitmask))
                     if lighting:
-                        black = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
                         if self.light_grid[x][y] != 0:
-                            black.fill((0,0,0, self.light_grid[x][y] * -36 % 255))
-                            self.tile_surfaces.append((tile, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
-                            self.tile_surfaces.append((black, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                            self.black_tile.fill((0,0,0, self.light_grid[x][y] * -36 % 255))
                         else:
-                            black.fill((0,0,0, 255))
-                            self.tile_surfaces.append((black, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                            self.black_tile.fill((0,0,0, 255))
+
+                        self.tile_surfaces.append((tile, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                        self.tile_surfaces.append((self.black_tile.convert_alpha(), (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
                     else:
                         self.tile_surfaces.append((tile, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
                 else:
