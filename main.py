@@ -32,7 +32,7 @@ class Main():
         self.tilemap.generate_world()
         self.lighting = False
 
-        self.player = Player(0, 200, 7, 15, self.tilemap)
+        self.player = Player(100, 100, 7, 15, self.tilemap)
 
     def render(self):
         # Draw any pixel art on viewport to keep pixels
@@ -40,9 +40,6 @@ class Main():
 
         # Blit only the whats visible from the camera and tilemap to viewport
         self.viewport.blit(self.tilemap.surface, (0,0))
-        if self.lighting:
-            for rect in self.tilemap.rects:
-                pygame.draw.rect(self.viewport, (0,0,0), (rect.left, rect.top, rect.width, rect.height))
 
         # Tilemap highlight on cursor
         self.viewport.blit(self.tilemap.cursor, (self.mouse_position_tile.x * TILE_SIZE - self.camera.x, self.mouse_position_tile.y * TILE_SIZE - self.camera.y), special_flags=pygame.BLEND_ADD)
@@ -100,12 +97,12 @@ class Main():
             if self.mouse_pressed[0]:
                 self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 0)
             elif self.mouse_pressed[2]:
-                self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 3)
+                self.tilemap.set_tile(int(self.mouse_position_tile.x), int(self.mouse_position_tile.y), 1)
 
             self.keys = pygame.key.get_pressed()
             self.player.update(self.delta, self.keys)
             self.camera.update(self.delta, self.keys, self.player)
-            self.tilemap.update()
+            self.tilemap.update(self.lighting)
             
             self.render()
             pygame.display.update()

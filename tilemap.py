@@ -10,6 +10,7 @@ class TileMap():
 
         self.tile_count = 0
         self.grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
+        self.light_grid = numpy.full((TILEMAP_SIZE[0], TILEMAP_SIZE[1]), 0)
         self.offsets = [(0, -1, 0), (-1, 0, 1), (1, 0, 2), (0, 1, 3)]
 
         self.surface = pygame.surface.Surface(VIEWPORT_RESOLUTION, pygame.SRCALPHA)
@@ -64,8 +65,12 @@ class TileMap():
             self.set_tile(x, range(y + 1, y + 9), 2)
             self.set_tile(x, range(y + 9, TILEMAP_SIZE[1]), 3)
     
-    def update(self):
+    def update(self, lighting):
+        # Sky
+        self.surface.fill((165,215,240))
+
         self.tile_count = 0
+        self.tile_surfaces = []
 
         # Range used to see which tiles to render on screen based on what the camera can see
         self.camera_to_tile = self.screen_to_tile(self.camera.x % TILE_SIZE, self.camera.y % TILE_SIZE)
@@ -74,14 +79,13 @@ class TileMap():
         self.visible_x = range(max(0, int(self.camera_to_tile.x) - 1), min(int(self.camera_to_tile.x + self.visible_tiles_x) + 1, TILEMAP_SIZE[0]))
         self.visible_y = range(max(0, int(self.camera_to_tile.y) - 1), min(int(self.camera_to_tile.y + self.visible_tiles_y) + 1, TILEMAP_SIZE[1]))
 
-        self.surface.fill((165,215,240))
-        tile_surfaces = []
-
+        # Iterating column major is apparently more memory efficient
         for y in self.visible_y:
             for x in self.visible_x:
-                tile_id = self.grid[x, y] # Accessing directly instead of using get_tile is marginally faster
+                tile_id = self.grid[x][y] # Accessing directly instead of using get_tile() is marginally faster
                 if tile_id >= 1:
                     self.tile_count += 1
+                    self.light_grid[x][y] = max(0, self.light_grid[x][y-1] - 1)
 
                     # Bit masking for auto tiling
                     bitmask = 0
@@ -90,6 +94,20 @@ class TileMap():
                         if 0 <= nx < TILEMAP_SIZE[0] and 0 <= ny < TILEMAP_SIZE[1]:
                             if self.grid[nx][ny] == tile_id:
                                 bitmask |= (1 << bit[2])
+                    
+                    tile = (self.tilesets[tile_id - 1].get_tile_surface(bitmask))
+                    if lighting:
+                        black = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+                        if self.light_grid[x][y] != 0:
+                            black.fill((0,0,0, self.light_grid[x][y] * -36 % 255))
+                            self.tile_surfaces.append((tile, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                            self.tile_surfaces.append((black, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                        else:
+                            black.fill((0,0,0, 255))
+                            self.tile_surfaces.append((black, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                    else:
+                        self.tile_surfaces.append((tile, (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
+                else:
+                    self.light_grid[x][y] = 8
 
-                    tile_surfaces.append(((self.tilesets[tile_id - 1].get_tile_surface(bitmask)), (math.floor((x * TILE_SIZE) - self.camera.x), math.floor((y * TILE_SIZE)  - self.camera.y), TILE_SIZE, TILE_SIZE)))
-        self.rects = self.surface.blits(tile_surfaces, True)
+        self.rects = self.surface.blits(self.tile_surfaces, True)
