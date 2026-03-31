@@ -24,7 +24,7 @@ class TileMap():
             tiles = file_content.splitlines()
             for tile in tiles:
                 if tile != 'air':
-                    image_path = f'content/sprites/{tile}-old.png'
+                    image_path = f'content/sprites/{tile}-fast.png'
                     try:
                         surface = pygame.image.load(image_path)
                         surface = surface.convert_alpha()
