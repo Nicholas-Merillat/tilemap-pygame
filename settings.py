@@ -1,4 +1,4 @@
-import pygame, math, numpy, sys, ctypes, tkinter
+import pygame, math, numpy, sys, ctypes, os
 
 # User settings
 WINDOW_RESOLUTION = (1280, 720)

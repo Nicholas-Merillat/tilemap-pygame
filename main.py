@@ -5,7 +5,8 @@ from player import Player
 from camera import Camera
 
 # Have to call this or else fetching monitor resolution doesn't work
-ctypes.windll.user32.SetProcessDPIAware()
+if os.name == 'nt':
+    ctypes.windll.user32.SetProcessDPIAware()
 
 class Main():
     def __init__(self):
